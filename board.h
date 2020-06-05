@@ -1,6 +1,3 @@
-//Definiamo qui la classe board, ripresa dall'esercizio Game of Life con le opportune modifiche
-//Ultima modifica Greg 15/05 - 14:40// bisogna risolvere il problema del non movimento dei quarantenati
-
 #ifndef BOARD_HPP
 #define BOARD_HPP
 
