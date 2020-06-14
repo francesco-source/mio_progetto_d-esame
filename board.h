@@ -50,6 +50,8 @@ class Board {
     double beta_;
     double gamma_;
     int day;
+    int colon_quarantena;
+    int riga_quarantena;
     bool adv_opt;
     int number_infected = 0;//Nuova variabile per attivare opzioni avanzate
 public:  
