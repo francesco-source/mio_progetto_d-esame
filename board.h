@@ -52,26 +52,21 @@ class Board {
     int day;
     bool adv_opt;
     int number_infected = 0;//Nuova variabile per attivare opzioni avanzate
-public:  
-    Board(int n, double b, double y) : grid_(n + 2, std::vector<Cell>(n + 2)) {
-    //Verifico la coerenza dei dati
-    assert(b > 0 && b < 1);
-    assert(y > 0 && y < 1);
-    assert(n > 3);
+public:
+    Board(int n, double b, double y, bool f) : grid_(n + 2, std::vector<Cell>(n + 2)), adv_opt{ f }{
+        //Verifico la coerenza dei dati
+        assert(b > 0 && b < 1);
+        assert(y > 0 && y < 1);
+        assert(n > 3);
 
-    beta_ = b;
-    gamma_ = y;
-    dimension_ = n + 2;
-    day = 0;
-    adv_opt = false;
-};
-      Sir& operator()(int riga, int colonna) {
-          return (grid_[riga + 1][colonna + 1].state);
-      }
-      //Funzione per abilitare le opzioni avanzate(move, q, ecc)
-      void enable_adv_opt(bool hs) {
-          adv_opt = hs;
-      }
+        beta_ = b;
+        gamma_ = y;
+        dimension_ = n + 2;
+        day = 0;
+    };
+    Sir& operator()(int riga, int colonna) {
+        return (grid_[riga + 1][colonna + 1].state);
+    }
     void print_() {
         std::cout << "Day " << day << '\n';
         for (int l = 0; l <= dimension_ - 1; ++l) {
@@ -151,7 +146,7 @@ public:
 
         }
     }
-    
+
     //Funzione per evolvere di un giorno la tabella.Questo è il cuore del programma
     void evolve_() {
         std::vector<std::vector<Sir>> end(dimension_ - 2, std::vector<Sir>(dimension_ - 2));
@@ -189,7 +184,7 @@ public:
                     //int num = (dimension_*dimension_* gamma_);
                     int num = 9;
                     int factor = (rand() + time(0)) % num;
-                    if (factor == num - 1  && day > 6) { //factor e days li ho messi liberamente uguali a questi valori && (number_infected * gamma_ < teoretical_rescued)
+                    if (factor == num - 1 && day > 6) { //factor e days li ho messi liberamente uguali a questi valori && (number_infected * gamma_ < teoretical_rescued)
                         end[l - 1][c - 1] = Sir::r;
                     }
                     else {
@@ -209,7 +204,7 @@ public:
                     }
                 }
             }
-        
+
         }
         ++day;
         bool vero = true;
@@ -267,7 +262,7 @@ public:
             if (day > 10 && buleano < 90) {
                 ++buleano;
                 quarantene_();
-       }
+            }
             //Gestione eventi
             sf::Event evnt;
             while (window.pollEvent(evnt)) {
@@ -277,7 +272,7 @@ public:
                 }
             }
 
-            std::cout << "Day " << day << "  number of infected = "<<number_infected<< '\n';
+            std::cout << "Day " << day << "  number of infected = " << number_infected << '\n';
             evolve_();
             if (adv_opt) {
                 move_();
@@ -308,4 +303,4 @@ public:
         }
     }
 };
-#endif 
+#endif
