@@ -8,5 +8,5 @@ int main(int argc,char* argv[]) {
     b(1, 1) = Sir::i;
     //b.print(100);
     b.draw();
-    return 1;
+    return 0;
 }
