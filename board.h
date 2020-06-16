@@ -1,4 +1,4 @@
-fndef BOARD_HPP
+#ifndef BOARD_HPP
 #define BOARD_HPP
 
 #include <vector>
@@ -22,10 +22,6 @@ fndef BOARD_HPP
 
 enum class Sir :char {
     s = 45, i = 43, r = -80, q = 81
-};
-struct Stato {
-    int linea;
-    int colonna;
 };
 
 Sir& operator++(Sir& hs) {
@@ -55,16 +51,14 @@ class Board {
     double gamma_;
     int day;
     bool adv_opt;
-    int number_infected = 0;
-    Stato Usa;//Nuova variabile per attivare opzioni avanzate
+    int number_infected = 0;//Nuova variabile per attivare opzioni avanzate
 public:
-    Board(int n, double b, double y, bool f,Stato U) : grid_(n + 2, std::vector<Cell>(n + 2)), adv_opt{ f }{
+    Board(int n, double b, double y, bool f) : grid_(n + 2, std::vector<Cell>(n + 2)), adv_opt{ f }{
         //Verifico la coerenza dei dati
         assert(b > 0 && b < 1);
         assert(y > 0 && y < 1);
         assert(n > 3);
-        Usa.colonna = U.colonna;
-        Usa.linea = U.linea;
+
         beta_ = b;
         gamma_ = y;
         dimension_ = n + 2;
@@ -103,7 +97,12 @@ public:
         }
 
     }
-   
+    void quarantene_() {
+        for (int i = 50 ; i < 80; ++i) {
+            for (int j = 50; j < 80; ++j)
+                grid_[i][j].state = Sir::q;
+        }
+    }
     //Funzione per muovere le celle
     void move_() {
         for (int l = 1; l < dimension_ - 1; ++l) {
@@ -195,10 +194,9 @@ public:
                     end[l - 1][c - 1] = Sir::r;
                 }
                 else {
-                    if(day<90)
-                    end[l - 1][c - 1] = Sir::q;
-                    else
-                        end[l - 1][c - 1] = Sir::s;
+         
+                        end[l - 1][c - 1] = Sir::q;
+                
                 }
             }
 
@@ -207,39 +205,30 @@ public:
         bool vero = true;
         copy_(end, vero);
     }
-    void quarantene_() {
-        for (int i = Usa.colonna; i <Usa.colonna; ++i) {
-            for (int j = 50; j < 80; ++j)
-                grid_[i][j].state = Sir::q;
-        }
-    }
+
     void airplane_() {
         for (int l = 1; l < dimension_; ++l) {
             for (int c = 1; c < dimension_; ++c) {
-                if ((l || c) < Usa.colonna && (l || c) > 2 * Usa.colonna) {
-                    int colonna = (rand() + time(0)) % dimension_;
-                    int riga = (rand() + time(0)) % dimension_;
-                    if (grid_[l][c].state != Sir::q && grid_[colonna][riga].state != Sir::q
-                         && (riga || colonna) < Usa.colonna && (riga || colonna) > 2 * Usa.colonna) {
+                int colonna = (rand() + time(0)) % dimension_;
+                int riga = (rand() + time(0)) % dimension_;
+                if (grid_[l][c].state != Sir::q && grid_[colonna][riga].state != Sir::q) {
 
-                        if (riga == 1) {
-                            auto sposto = new Cell();
-                            sposto->state = grid_[colonna][riga].state;
-                            sposto->inf_prob = grid_[colonna][riga].inf_prob;
-                            sposto->rec_prob = grid_[colonna][riga].rec_prob;
-                            grid_[colonna][riga].state = grid_[l][c].state;
-                            grid_[colonna][riga].inf_prob = grid_[l][c].inf_prob;
-                            grid_[colonna][riga].rec_prob = grid_[l][c].rec_prob;
-                            grid_[l][c].state = sposto->state;
-                            grid_[l][c].inf_prob = sposto->inf_prob;
-                            grid_[l][c].rec_prob = sposto->rec_prob;
-                            delete sposto;
-                        }
+                    if (riga == 1) {
+                        auto sposto = new Cell();
+                        sposto->state = grid_[colonna][riga].state;
+                        sposto->inf_prob = grid_[colonna][riga].inf_prob;
+                        sposto->rec_prob = grid_[colonna][riga].rec_prob;
+                        grid_[colonna][riga].state = grid_[l][c].state;
+                        grid_[colonna][riga].inf_prob = grid_[l][c].inf_prob;
+                        grid_[colonna][riga].rec_prob = grid_[l][c].rec_prob;
+                        grid_[l][c].state = sposto->state;
+                        grid_[l][c].inf_prob = sposto->inf_prob;
+                        grid_[l][c].rec_prob = sposto->rec_prob;
+                        delete sposto;
                     }
                 }
             }
         }
-
     }
     //Funzione per avare la grafica
     void draw() {
@@ -258,13 +247,11 @@ public:
         sf::RectangleShape inf_bit(sf::Vector2f(bit_size, bit_size));
         sf::RectangleShape rec_bit(sf::Vector2f(bit_size, bit_size));
         sf::RectangleShape q_bit(sf::Vector2f(bit_size, bit_size));
-        sf::RectangleShape bordo(sf::Vector2f(bit_size, bit_size));
 
         sus_bit.setFillColor(sf::Color::Green);
         inf_bit.setFillColor(sf::Color::Red);
         rec_bit.setFillColor(sf::Color::Blue);
         q_bit.setFillColor(sf::Color::Yellow);
-        bordo.setFillColor(sf::Color::Black);
         int buleano = 1;
         while (window.isOpen()) {
             if (day > 10 && buleano < 90) {
