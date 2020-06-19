@@ -27,7 +27,6 @@ struct Quarantene_parameters {
     int len_line;
     int first_day;
     int last_day;
-    int quarantene_infected;
 };
 struct Cell {
     Sir state;
@@ -49,8 +48,7 @@ class Board {
     bool adv_opt;
     int number_infected = 0;
     Quarantene_parameters quaranten;
-    std::vector<int> grafico_out_quarantene;
-    std::vector<int> grafico_in_quarantene;//Nuova variabile per attivare opzioni avanzate
+    std::vector<int> grafico;//Nuova variabile per attivare opzioni avanzate
 public:
     Board(int n, double b, double y, bool f, Quarantene_parameters quarantene) : grid_(n + 2, std::vector<Cell>(n + 2)), adv_opt{ f }, dimension_{ n + 2 },
         beta_{ b }, gamma_{ y }{
@@ -61,7 +59,6 @@ public:
         quaranten.first_day = quarantene.first_day;
         quaranten.last_day = quarantene.last_day;
         day = 0;
-        quaranten.quarantene_infected = 0;
     };
     Sir& operator()(int riga, int colonna) {
         return (grid_[riga + 1][colonna + 1].state);
@@ -139,20 +136,13 @@ public:
 
         }
     }
-    void counter_quaranene_infected() {
-        for (int line = quaranten.len_line; line < quaranten.len_line * 2; ++line) {
-            for (int colon = quaranten.len_line; colon < quaranten.len_line * 2; ++colon) {
-                if (grid_[line][colon].state == Sir::i || grid_[line][colon].state == Sir::r)
-                    ++quaranten.quarantene_infected;
-            }
-        }
-    }
     //Funzione per evolvere di un giorno la tabella.Questo è il cuore del programma
     void evolve_() {
         std::vector<std::vector<Sir>> end(dimension_ - 2, std::vector<Sir>(dimension_ - 2));
+        number_infected = 0;
         for (int m = 1; m < dimension_ - 1; ++m) {//conta il numero di infetti in ogni vettore grid_
             for (int n = 1; n < dimension_ - 1; ++n) {
-                if (((grid_[m][n].state == Sir::i || grid_[m][n].state == Sir::r))&& (m||n)!= quaranten.len_line) {
+                if (grid_[m][n].state == Sir::i || grid_[m][n].state == Sir::r) {
                     ++number_infected;
                 }
             }
@@ -202,7 +192,6 @@ public:
             }
 
         }
-        counter_quaranene_infected();
         ++day;
         copy_(end);
     }
@@ -279,16 +268,12 @@ public:
         sf::RectangleShape rec_bit(sf::Vector2f(bit_size, bit_size));
         sf::RectangleShape grafico_puntino(sf::Vector2f(bit_size, bit_size));
         sf::RectangleShape bordo(sf::Vector2f(bit_size, bit_size));
-        sf::RectangleShape confine_fra_i_due_grafici(sf::Vector2f(bit_size, bit_size));
-        sf::RectangleShape quarantena_grafico(sf::Vector2f(bit_size, bit_size));
 
         sus_bit.setFillColor(sf::Color::Green);
         inf_bit.setFillColor(sf::Color::Red);
         rec_bit.setFillColor(sf::Color::Blue);
         grafico_puntino.setFillColor(sf::Color::Red);
         bordo.setFillColor(sf::Color::Black);
-         quarantena_grafico.setFillColor(sf::Color::Red);
-        confine_fra_i_due_grafici.setFillColor(sf::Color::Yellow);
         std::cout << "day**********" << "number_infected**********" << '\n';
         while (window.isOpen()) {
             if (day >= quaranten.first_day && day <= (quaranten.last_day)) {
@@ -332,37 +317,18 @@ public:
                 }
 
             }
-            //ciclo che disegna il confine fra i due grafici
-            for (int i = dimension_ + 1; i < (5 * dimension_ / 3); ++i) {
-                confine_fra_i_due_grafici.setPosition(i * bit_size, dimension_ / 2);
-                window.draw(confine_fra_i_due_grafici);
-            }
-            int punto_grafico_quarantena = static_cast<int> (quaranten.quarantene_infected / (dimension_*4 ));
-            int punto_grafico_disegnato = static_cast<int>(number_infected / (dimension_*4));
-            grafico_out_quarantene.push_back(punto_grafico_disegnato);
-            grafico_in_quarantene.push_back(punto_grafico_quarantena);
-            for (int counter = 0; counter < grafico_out_quarantene.size(); ++counter) {
-                if (grafico_out_quarantene[counter] <=1){
-                    grafico_puntino.setPosition(static_cast<float>(dimension_ + counter), static_cast<float>((dimension_/2) - 1));
+            int punto_grafico_disegnato = static_cast<int>(number_infected / dimension_);
+            grafico.push_back(punto_grafico_disegnato);
+            for (int counter = 0; counter < grafico.size(); ++counter) {
+                if (grafico[counter] <= 1) {
+                    grafico_puntino.setPosition(static_cast<float>(dimension_ + counter), static_cast<float>(dimension_ - 1));
                     window.draw(grafico_puntino);
                 }
-                else {
-                    grafico_puntino.setPosition(static_cast<float>(dimension_ + counter + 1), static_cast<float>((dimension_ / 2) - grafico_out_quarantene[counter] + 1));
-                    window.draw(grafico_puntino);
-                }
+                grafico_puntino.setPosition(static_cast<float>(dimension_ + counter + 1), static_cast<float>(dimension_ - grafico[counter] + 1));
+                window.draw(grafico_puntino);
             }
-                for (int counter = 0; counter < grafico_in_quarantene.size(); ++counter) {
-                    if (grafico_in_quarantene[counter] <= 1) {
-                        quarantena_grafico.setPosition(static_cast<float>(dimension_ + counter), static_cast<float>(dimension_ - 1));
-                        window.draw(quarantena_grafico);
-                    }
-                    else {
-                        quarantena_grafico.setPosition(static_cast<float>(dimension_ + counter + 1), static_cast<float>(dimension_ - grafico_in_quarantene[counter] + 1));
-                        window.draw(quarantena_grafico);
-                    }
-                }
-        window.display();
-    }
+            window.display();
+        }
     }
 };
 #endif
